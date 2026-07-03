@@ -1,0 +1,17 @@
+import { useMemo } from "react";
+import { personLoad } from "./engine";
+import { Avatar, Badge, Button, PageHeading, Panel, Progress } from "./ui";
+
+const loadTone = (risk) => risk === "Available" ? "success" : risk === "Active" ? "blue" : risk === "Watch" ? "warning" : "danger";
+
+export function Team({ state, summary, updatePersonAvailability, setTab }) {
+  const skillCount = useMemo(() => state.people.reduce((counts, person) => { person.skills.forEach((skill) => { counts[skill] = (counts[skill] || 0) + 1; }); return counts; }, {}), [state.people]);
+  return <div className="page">
+    <PageHeading eyebrow="People & skill intelligence" title="Team capacity and skill matrix" text="Balance utilization before it becomes burnout, see the actual skills behind each delivery commitment, and identify which capabilities are concentrated in one person." action={<Button onClick={() => setTab("planner")}>Open staffing planner</Button>}/>
+    <section className="team-grid">{summary.people.slice().sort((a, b) => b.load.utilization - a.load.utilization).map(({ person, load }) => <article className="person-card" key={person.id}><header><Avatar initials={person.initials}/><div><strong>{person.name}</strong><small>{person.title}</small></div><Badge tone={loadTone(load.risk)}>{load.risk}</Badge></header><div className="util-row"><span>Weekly load</span><b>{Math.round(load.allocated)}/{load.capacity}h · {Math.round(load.utilization)}%</b></div><Progress value={load.utilization} tone={load.utilization > 100 ? "red" : load.utilization >= 88 ? "gold" : "green"}/><div className="util-row"><span>Burnout signal</span><b>{load.burnout}/100</b></div><Progress value={load.burnout} tone={load.burnout >= 70 ? "red" : load.burnout >= 45 ? "gold" : "green"}/><div className="skill-tags">{person.skills.map((skill) => <Badge key={skill} tone="neutral">{skill}</Badge>)}</div><label className="availability-control">Availability<select value={person.availability} onChange={(event) => updatePersonAvailability(person.id, event.target.value)}><option>Available</option><option>Limited</option><option>Unavailable</option></select></label><p>{person.notes}</p></article>)}</section>
+    <section className="two-col">
+      <Panel eyebrow="Skill concentration" title="Who can protect each capability"><div className="skill-matrix">{Object.entries(skillCount).sort((a, b) => a[0].localeCompare(b[0])).map(([skill, count]) => <article key={skill}><div><strong>{skill}</strong><small>{count} team member{count === 1 ? "" : "s"} with this skill</small></div><Badge tone={count === 1 ? "warning" : "success"}>{count === 1 ? "Single point" : "Covered"}</Badge></article>)}</div></Panel>
+      <Panel eyebrow="Capacity watch" title="Actionable team signals"><div className="capacity-watch">{summary.people.filter(({ load }) => load.utilization >= 88 || load.burnout >= 65).length ? summary.people.filter(({ load }) => load.utilization >= 88 || load.burnout >= 65).map(({ person, load }) => <article key={person.id}><i>{load.utilization > 100 ? "!" : "◷"}</i><div><strong>{person.name}</strong><small>{Math.round(load.utilization)}% utilization · {load.burnout}/100 burnout signal · {Math.round(load.free)}h available</small></div></article>) : <div className="empty"><i>✓</i><strong>No capacity watch</strong><p>All team members are currently below the workload alert threshold.</p></div>}</div></Panel>
+    </section>
+  </div>;
+}
