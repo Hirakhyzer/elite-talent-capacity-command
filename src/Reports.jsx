@@ -1,1 +1,22 @@
-export function Reports() { return null; }
+import { money, percent } from "./engine";
+import { Badge, Button, Metric, PageHeading, Panel } from "./ui";
+
+const tone = (band) => band === "Low" ? "success" : band === "Medium" ? "warning" : "danger";
+
+export function Reports({ state, summary, selectedProject, selectedAnalysis, saveReport, removeReport, exportText, exportJson, resetWorkspace }) {
+  return <div className="page">
+    <PageHeading eyebrow="Workforce governance" title="Capacity reports and decision records" text="Save the current staffing position before a delivery review, hiring decision, contractor approval, or project-plan change." action={<Button onClick={saveReport}>Save capacity snapshot</Button>}/>
+    <section className="metrics">
+      <Metric label="Selected project" value={`${selectedAnalysis.riskScore}/100`} detail={selectedProject.name} tone={tone(selectedAnalysis.band)} icon="◆"/>
+      <Metric label="Coverage" value={percent(selectedProject.targetHours ? selectedAnalysis.assignedHours / selectedProject.targetHours * 100 : 0)} detail={`${selectedAnalysis.capacityGap}h uncovered`} tone={selectedAnalysis.capacityGap ? "warning" : "success"} icon="◷"/>
+      <Metric label="Missing skills" value={selectedAnalysis.missingSkills.length} detail={selectedAnalysis.missingSkills.length ? selectedAnalysis.missingSkills.join(", ") : "All skills covered"} tone={selectedAnalysis.missingSkills.length ? "danger" : "success"} icon="!"/>
+      <Metric label="Available capacity" value={`${summary.available}h`} detail={`${percent(summary.utilization)} team utilization`} tone={summary.utilization >= 90 ? "warning" : "blue"} icon="↗"/>
+    </section>
+    <section className="two-col">
+      <Panel eyebrow="Export package" title="Share a staffing decision"><div className="export-actions"><Button onClick={exportText}>Download TXT report</Button><Button variant="outline" onClick={exportJson}>Download JSON</Button><Button variant="outline" onClick={() => window.print()}>Print / Save as PDF</Button></div><div className="report-preview"><strong>{selectedProject.name}</strong><span>{selectedProject.client} · deadline {selectedProject.deadline}</span><span>Staffing risk: {selectedAnalysis.riskScore}/100 · {selectedAnalysis.band}</span><span>Capacity gap: {selectedAnalysis.capacityGap} weekly hours</span><span>Recommended action: {selectedAnalysis.suggestion}</span></div></Panel>
+      <Panel eyebrow="Workspace data" title="Browser storage"><p className="report-copy">Plans, assignments, candidates, approvals, and saved snapshots are stored in this browser. Use an export for handoff.</p><Button variant="outline" onClick={resetWorkspace}>Reset demo workspace</Button><div className="brand-rows"><span>Made by</span><b>Hira Khyzer</b><span>Company</span><b>Elite Era Development L.L.C</b><span>Brand color</span><b>#f4af00</b></div></Panel>
+    </section>
+    <Panel eyebrow="Saved capacity snapshots" title="Staffing decision library">{state.savedReports.length ? <div className="report-list"><div className="report-head"><span>Project</span><span>Risk</span><span>Coverage</span><span>Gap</span><span>Saved</span><span/></div>{state.savedReports.map((report) => <div className="report-row" key={report.id}><div><strong>{report.project}</strong><small>{report.client}</small></div><Badge tone={tone(report.band)}>{report.risk}/100</Badge><span>{percent(report.coverage)}</span><span>{report.gap}h</span><span>{report.createdAt}</span><button onClick={() => removeReport(report.id)}>Remove</button></div>)}</div> : <div className="empty"><i>▤</i><strong>No saved snapshots</strong><p>Save the current project capacity position before changing the staffing plan.</p></div>}</Panel>
+    <Panel eyebrow="Portfolio memo" title="Leadership view"><div className="memo"><article><span>Delivery posture</span><p>{summary.atRiskProjects.length} active project{summary.atRiskProjects.length === 1 ? " is" : "s are"} carrying high staffing risk, while {summary.overloaded.length} team member{summary.overloaded.length === 1 ? " is" : "s are"} above capacity.</p></article><article><span>Capability posture</span><p>{summary.gaps.length ? `${summary.gaps.length} skill gap${summary.gaps.length === 1 ? " is" : "s are"} visible across active work.` : "Required skills are currently covered across active delivery commitments."}</p></article><article><span>Investment posture</span><p>{state.roleRequests.length} role request{state.roleRequests.length === 1 ? " remains" : "s remain"} in the decision workflow. Payroll forecast is {money(summary.monthlyPayroll)} per month.</p></article></div></Panel>
+  </div>;
+}
