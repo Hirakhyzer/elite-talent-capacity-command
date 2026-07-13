@@ -1,0 +1,16 @@
+seed: 42
+output_dir: outputs
+synthetic:
+  employees: 90
+  projects: 18
+
+analytics:
+  skill_gap_risk_components: [shortage, priority, deadline, business_value]
+  burnout_risk_components: [utilization, engagement, attrition_signal, tenure]
+  fairness_groups: [A, B, C]
+
+safety:
+  real_employee_data: false
+  employment_decisions_automated: false
+  human_review_required: true
+  data_origin_label: synthetic fictional workforce data
