@@ -5,3 +5,17 @@ coverage/
 .env
 .env.local
 .DS_Store
+
+# Python research lab
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.ipynb_checkpoints/
+
+# Keep real workforce data and generated outputs local
+data/raw/
+outputs/results/*
+outputs/figures/*
+outputs/reports/*
+outputs/audit/*
