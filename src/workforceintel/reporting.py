@@ -36,5 +36,8 @@ def write_report(path: str | Path, summary: dict[str, Any], gaps: pd.DataFrame, 
     lines.extend(["", "## Staffing alternatives", "", "| Project | Skill | Action | Cost | Rationale |", "| --- | --- | --- | ---: | --- |"])
     for row in options.head(10).itertuples(index=False):
         lines.append(f"| {row.project_id} | {row.skill} | {row.recommended_action} | {row.estimated_cost} | {row.rationale} |")
-    lines.extend(["", "## Fairness audit", "", fairness.to_markdown(index=False), "", "## Human review boundary", "", "All outputs are planning evidence. Real workforce decisions require manager, HR, legal, and employee-development review with privacy protections."])
+    lines.extend(["", "## Fairness audit", "", "| Group | Employees | Mean utilization | Mean burnout risk | High burnout rate | Learning recommendations |", "| --- | ---: | ---: | ---: | ---: | ---: |"])
+    for row in fairness.itertuples(index=False):
+        lines.append(f"| {row.group} | {row.employee_count} | {row.mean_utilization:.3f} | {row.mean_burnout_risk:.2f} | {row.high_burnout_rate:.3f} | {row.mean_learning_recommendations:.3f} |")
+    lines.extend(["", "## Human review boundary", "", "All outputs are planning evidence. Real workforce decisions require manager, HR, legal, and employee-development review with privacy protections."])
     destination.write_text("\n".join(lines), encoding="utf-8")
